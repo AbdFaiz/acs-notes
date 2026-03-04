@@ -52,7 +52,7 @@ export default function NoteCard({ note }: { note: Note }) {
       </div>
 
       {/* Title */}
-      <div className="flex-1">
+      <Link href={`dashboard/detail/${note.id}`} className="flex-1">
         <h2 className="font-semibold text-base leading-snug line-clamp-2 mb-1.5" style={{ color: 'var(--text)' }}>
           {note.title}
         </h2>
@@ -61,8 +61,7 @@ export default function NoteCard({ note }: { note: Note }) {
             {note.description}
           </p>
         )}
-      </div>
-
+      </Link>
       {/* Actions */}
       <div className="flex items-center gap-1 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
         <Link href={`/dashboard/edit/${note.id}`}
