@@ -70,15 +70,16 @@ export default function FilterBar({ activeCategory, activeDate, activeSearch }: 
   const hasFilters = activeCats.length > 0 || activeDate || activeSearch.trim();
 
   return (
-    <div className="flex items-center justify-between gap-3 mb-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+      {/* Categories - Full width di mobile dengan grid 4 kolom */}
+      <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
         {CATEGORIES.map(cat => {
           const isActive = activeCats.includes(cat);
           return (
             <button
               key={cat}
               onClick={() => toggleCategory(cat)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+              className="flex items-center justify-center sm:justify-start gap-1.5 px-3 py-2 sm:py-1.5 rounded-full text-xs font-medium transition-all w-full sm:w-auto"
               style={{
                 background: isActive ? 'var(--surface-2)' : 'var(--surface)',
                 color: isActive ? 'var(--text)' : 'var(--text-3)',
@@ -93,52 +94,62 @@ export default function FilterBar({ activeCategory, activeDate, activeSearch }: 
             </button>
           );
         })}
-
-        {hasFilters && (
-          <button
-            onClick={clearAll}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs transition-all text-(--text-3) hover:text-(--danger) border border-border bg-surface hover:border-(--danger)"
-          >
-            <X size={11} /> Clear all
-          </button>
-        )}
       </div>
 
-      <div className="flex items-center gap-2">
-        {/* Search dengan local state */}
-        <div className="relative w-48">
-          <Search
-            size={13}
-            className="absolute left-3 top-1/2 -translate-y-1/2"
-            style={{ color: 'var(--text-3)' }}
-          />
-          
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+        {/* Search dan Date - 50:50 di mobile */}
+        <div className="flex flex-row gap-2 w-full sm:w-auto">
+          {/* Search dengan local state */}
+          <div className="relative flex-1 sm:w-48">
+            <Search
+              size={13}
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: 'var(--text-3)' }}
+            />
+            
+            <input
+              type="text"
+              placeholder="Search notes…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full text-xs pl-8 pr-3 py-2 sm:py-1.5 rounded-full focus:outline-none transition-all"
+              style={{
+                background: searchInput ? 'var(--surface-2)' : 'var(--surface)',
+                border: `1px solid ${searchInput ? 'var(--border-2)' : 'var(--border)'}`,
+                color: 'var(--text)',
+              }}
+            />
+          </div>
+
+          {/* Date input */}
           <input
-            type="text"
-            placeholder="Search notes…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full text-xs pl-8 pr-3 py-1.5 rounded-full focus:outline-none transition-all"
+            type="date"
+            value={activeDate}
+            onChange={handleDateChange}
+            className="flex-1 sm:flex-none text-xs px-3 py-2 sm:py-1.5 rounded-full focus:outline-none transition-all"
             style={{
-              background: searchInput ? 'var(--surface-2)' : 'var(--surface)',
-              border: `1px solid ${searchInput ? 'var(--border-2)' : 'var(--border)'}`,
-              color: 'var(--text)',
+              background: activeDate ? 'var(--surface-2)' : 'var(--surface)',
+              border: `1px solid ${activeDate ? 'var(--border-2)' : 'var(--border)'}`,
+              color: activeDate ? 'var(--text)' : 'var(--text-3)',
             }}
           />
         </div>
 
-        {/* Date input */}
-        <input
-          type="date"
-          value={activeDate}
-          onChange={handleDateChange}
-          className="text-xs px-3 py-1.5 rounded-full focus:outline-none transition-all"
-          style={{
-            background: activeDate ? 'var(--surface-2)' : 'var(--surface)',
-            border: `1px solid ${activeDate ? 'var(--border-2)' : 'var(--border)'}`,
-            color: activeDate ? 'var(--text)' : 'var(--text-3)',
-          }}
-        />
+        {/* Clear All Button */}
+        {hasFilters && (
+          <button
+            onClick={clearAll}
+            className="flex items-center justify-center gap-1.5 px-4 py-2 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-full text-xs font-medium transition-all w-full sm:w-auto border bg-surface hover:bg-surface-2"
+            style={{
+              borderColor: 'var(--border)',
+              color: 'var(--text-3)',
+            }}
+          >
+            <X size={14} />
+            <span className="sm:hidden">Clear all filters</span>
+            <span className="hidden sm:inline">Clear all</span>
+          </button>
+        )}
       </div>
     </div>
   );
