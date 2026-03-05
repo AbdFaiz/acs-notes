@@ -7,6 +7,7 @@ import { ChevronLeft, Pencil, Calendar, Tag, Clock } from 'lucide-react';
 import { getNoteById } from '@/actions/noteActions';
 import DeleteButton from '@/components/DeleteButton';
 import type { Category } from '@/lib/types';
+import BackBtn from '@/components/BackBtn';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -42,10 +43,7 @@ export default async function NoteDetailPage({ params }: Props) {
     <div className="max-w-2xl mx-auto">
 
       {/* Back */}
-      <Link href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm mb-6 transition-colors text-(--text-3) hover:text-text">
-        <ChevronLeft size={15} /> Back to dashboard
-      </Link>
+      <BackBtn href="/dashboard" label="Back to dashboard" />
 
       <div className="card overflow-hidden">
 

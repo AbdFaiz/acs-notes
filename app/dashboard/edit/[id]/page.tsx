@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { getNoteById } from '@/actions/noteActions';
 import NoteForm from '@/components/NoteForm';
 import { Category } from '@/lib/types';
+import BackBtn from '@/components/BackBtn';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -22,13 +23,7 @@ export default async function EditNotePage({ params }: Props) {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-7">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1 text-sm mb-4 transition-colors"
-          style={{ color: 'var(--text-3)' }}
-        >
-          <ChevronLeft size={15} /> Back
-        </Link>
+        <BackBtn href="/dashboard" label="Back to dashboard" />
         <h1 className="text-3xl" style={{ fontFamily: 'Instrument Serif, serif' }}>Edit Note</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Update your note details</p>
       </div>
