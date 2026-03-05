@@ -1,3 +1,7 @@
+// lib/supabase.ts
+// Supabase client setup for the Daily Notes App
+// Uses @supabase/ssr for proper Next.js App Router support
+
 import { createBrowserClient } from '@supabase/ssr';
 
 /**

@@ -1,33 +1,59 @@
 // app/dashboard/page.tsx
 import Link from 'next/link';
 import { PenLine, StickyNote } from 'lucide-react';
-import { getNotes } from '@/actions/noteActions';
+import { getNotesPage } from '@/actions/noteActions';
 import NoteCard from '@/components/NoteCard';
 import FilterBar from '@/components/FilterBar';
+import Pagination from '@/components/Pagination';
 
-// In Next.js 15, searchParams is a Promise and must be awaited
-type SearchParams = Promise<{ category?: string; date?: string }>;
+const PAGE_SIZE = 9;
+
+type SearchParams = Promise<{
+  category?: string;
+  date?: string;
+  search?: string;
+  page?: string;
+}>;
 
 export default async function DashboardPage({ searchParams }: { searchParams: SearchParams }) {
-  // Await searchParams before accessing any properties
-  const { category, date } = await searchParams;
+  const { category, date, search, page: pageStr } = await searchParams;
 
-  const { notes, error } = await getNotes({ category, date });
+  const currentPage = Math.max(1, parseInt(pageStr ?? '1', 10));
 
-  const isFiltered = (category && category !== 'all') || date;
+  // Perbaikan: search bisa berupa string kosong dari URL
+  // Kirim undefined jika search kosong agar tidak memfilter
+  const searchValue = search?.trim() || undefined;
+
+  const { notes, total, error } = await getNotesPage({
+    category,
+    date,
+    search: searchValue, // Kirim undefined jika kosong
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+  });
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  
+  // Perbaikan: cek isFiltered dengan searchValue
+  const isFiltered = (category && category !== 'all') || date || searchValue;
+
+  const filterParts: string[] = [];
+  if (category && category !== 'all') filterParts.push(category.split(',').join(' + '));
+  if (date) filterParts.push(date);
+  if (searchValue) filterParts.push(`"${searchValue}"`);
 
   return (
     <div>
-      {/* Header */}
+      {/* Header - tetap sama */}
       <div className="flex items-end justify-between mb-6 gap-4">
         <div>
           <h1 className="text-3xl leading-tight" style={{ fontFamily: 'Instrument Serif, serif' }}>
             My Notes
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
-            {notes.length} {notes.length === 1 ? 'entry' : 'entries'}
-            {category && category !== 'all' && ` · ${category}`}
-            {date && ` · ${date}`}
+            {total} {total === 1 ? 'entry' : 'entries'}
+            {filterParts.length > 0 && ` · ${filterParts.join(' · ')}`}
+            {totalPages > 1 && ` · page ${currentPage} of ${totalPages}`}
           </p>
         </div>
         <Link href="/dashboard/new" className="btn-primary shrink-0">
@@ -37,12 +63,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         </Link>
       </div>
 
-      {/* Filters */}
-      <FilterBar activeCategory={category ?? 'all'} activeDate={date ?? ''} />
+      {/* Filters - tetap kirim search apa adanya dari URL */}
+      <FilterBar
+        activeCategory={category ?? 'all'}
+        activeDate={date ?? ''}
+        activeSearch={search ?? ''} // Kirim string asli dari URL (bisa kosong)
+      />
 
       {/* Error */}
       {error && (
-        <div className="mt-6 p-4 rounded-xl text-sm"
+        <div className="mt-2 p-4 rounded-xl text-sm"
           style={{ background: 'rgba(224,92,92,0.08)', border: '1px solid rgba(224,92,92,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
@@ -59,7 +89,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
             {isFiltered ? 'No notes found' : 'No notes yet'}
           </h2>
           <p className="text-sm mb-6" style={{ color: 'var(--text-3)' }}>
-            {isFiltered ? 'Try clearing your filters' : 'Create your first note to start tracking your day'}
+            {isFiltered
+              ? 'Try adjusting your filters or search term'
+              : 'Create your first note to start tracking your day'}
           </p>
           {!isFiltered && (
             <Link href="/dashboard/new" className="btn-primary">
@@ -69,11 +101,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Se
         </div>
       )}
 
-      {/* Grid */}
+      {/* Notes grid */}
       {notes.length > 0 && (
-        <div className="grid gap-4 mt-5 sm:grid-cols-2 lg:grid-cols-3">
-          {notes.map(note => <NoteCard key={note.id} note={note} />)}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {notes.map(note => <NoteCard key={note.id} note={note} />)}
+          </div>
+
+          {/* Pagination */}
+          <Pagination currentPage={currentPage} totalPages={totalPages} />
+        </>
       )}
     </div>
   );

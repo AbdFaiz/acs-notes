@@ -32,13 +32,13 @@ export default function Sidebar({ email, initials }: Props) {
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-2 mb-8">
+      <Link href={`/dashboard`} className="flex items-center gap-2.5 px-2 mb-8">
         <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: 'var(--accent)' }}>
           <BookOpen size={14} color="#0f0f11" strokeWidth={2.5} />
         </div>
         <span className="font-semibold text-sm">Daily Notes</span>
-      </div>
+      </Link>
 
       {/* Nav links */}
       <nav className="flex-1 space-y-1">
@@ -49,18 +49,16 @@ export default function Sidebar({ email, initials }: Props) {
             : pathname.startsWith(href);
 
           return (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-              style={{
-                color:      isActive ? 'var(--text)'   : 'var(--text-2)',
-                background: isActive ? 'var(--surface-2)' : 'transparent',
-              }}
-            >
-              {icon}
-              {label}
-            </Link>
+           <Link
+            key={href}
+            href={href}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-(--text-2) transition-all hover:bg-surface-2 hover:text-text ${
+              isActive ? 'bg-surface-2 text-text' : ''
+            }`}
+          >
+            {icon}
+            {label}
+          </Link>
           );
         })}
       </nav>

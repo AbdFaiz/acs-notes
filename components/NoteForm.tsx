@@ -2,17 +2,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Type, AlignLeft, Calendar, Tag, Save, X } from 'lucide-react';
+import { Type, AlignLeft, Calendar, Tag, Save, X, Check } from 'lucide-react';
 import { createNote, updateNote } from '@/actions/noteActions';
 import type { NoteFormData, Category } from '@/lib/types';
 
 const CATEGORIES: Category[] = ['Work', 'Study', 'Meeting', 'Other'];
 
-const CATEGORY_BADGE: Record<Category, string> = {
-  Work: 'badge-work',
-  Study: 'badge-study',
-  Meeting: 'badge-meeting',
-  Other: 'badge-other',
+const CATEGORY_STYLES: Record<Category, { badge: string; dot: string }> = {
+  Work:    { badge: 'badge-work',    dot: 'var(--work)'    },
+  Study:   { badge: 'badge-study',   dot: 'var(--study)'   },
+  Meeting: { badge: 'badge-meeting', dot: 'var(--meeting)' },
+  Other:   { badge: 'badge-other',   dot: 'var(--other)'   },
 };
 
 type Props = { noteId?: string; initialData?: NoteFormData };
@@ -25,21 +25,31 @@ export default function NoteForm({ noteId, initialData }: Props) {
     title:         initialData?.title         ?? '',
     description:   initialData?.description   ?? '',
     activity_date: initialData?.activity_date ?? today,
-    category:      initialData?.category      ?? '',
+    categories:    initialData?.categories    ?? [],
   });
-  const [error, setError]   = useState('');
+  const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  }
+
+  // Toggle a category in/out of the selected array
+  function toggleCategory(cat: Category) {
+    setForm(prev => ({
+      ...prev,
+      categories: prev.categories.includes(cat)
+        ? prev.categories.filter(c => c !== cat)
+        : [...prev.categories, cat],
+    }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!form.title.trim())    { setError('Title is required'); return; }
-    if (!form.activity_date)   { setError('Date is required'); return; }
+    if (!form.title.trim())  { setError('Title is required'); return; }
+    if (!form.activity_date) { setError('Date is required'); return; }
     setLoading(true);
     const result = isEditing ? await updateNote(noteId!, form) : await createNote(form);
     if (result?.error) { setError(result.error); setLoading(false); }
@@ -58,20 +68,22 @@ export default function NoteForm({ noteId, initialData }: Props) {
 
         {/* Title */}
         <div>
-          <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: 'var(--text-3)' }}>
+          <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase"
+            style={{ color: 'var(--text-3)' }}>
             <Type size={12} /> Title <span style={{ color: 'var(--danger)' }}>*</span>
           </label>
           <input name="title" type="text" required
             placeholder="What did you do today?"
             value={form.title} onChange={handleChange}
-            className="form-input text-base"
+            className="form-input"
             style={{ fontFamily: 'Instrument Serif, serif', fontSize: '1.1rem' }}
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: 'var(--text-3)' }}>
+          <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase"
+            style={{ color: 'var(--text-3)' }}>
             <AlignLeft size={12} /> Notes
             <span className="normal-case font-normal ml-1" style={{ color: 'var(--text-3)' }}>(optional)</span>
           </label>
@@ -82,39 +94,65 @@ export default function NoteForm({ noteId, initialData }: Props) {
           />
         </div>
 
-        {/* Date + Category */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: 'var(--text-3)' }}>
-              <Calendar size={12} /> Date <span style={{ color: 'var(--danger)' }}>*</span>
-            </label>
-            <input name="activity_date" type="date" required
-              value={form.activity_date} onChange={handleChange}
-              className="form-input"
-            />
-          </div>
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase" style={{ color: 'var(--text-3)' }}>
-              <Tag size={12} /> Category
-              <span className="normal-case font-normal" style={{ color: 'var(--text-3)' }}>(optional)</span>
-            </label>
-            <select name="category" value={form.category} onChange={handleChange} className="form-input">
-              <option value="">No category</option>
-              {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-          </div>
+        {/* Date */}
+        <div>
+          <label className="flex items-center gap-2 text-xs font-medium mb-2 tracking-wide uppercase"
+            style={{ color: 'var(--text-3)' }}>
+            <Calendar size={12} /> Date <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
+          <input name="activity_date" type="date" required
+            value={form.activity_date} onChange={handleChange}
+            className="form-input"
+          />
         </div>
 
-        {/* Selected category preview */}
-        {form.category && (
-          <div className="flex items-center gap-2 text-xs">
-            <span style={{ color: 'var(--text-3)' }}>Tagged as</span>
-            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-medium ${CATEGORY_BADGE[form.category as Category]}`}>
-              <Tag size={9} />
-              {form.category}
+        {/* Categories — multi-select toggle buttons */}
+        <div>
+          <label className="flex items-center gap-2 text-xs font-medium mb-3 tracking-wide uppercase"
+            style={{ color: 'var(--text-3)' }}>
+            <Tag size={12} /> Categories
+            <span className="normal-case font-normal ml-1" style={{ color: 'var(--text-3)' }}>
+              (optional, select multiple)
             </span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map(cat => {
+              const selected = form.categories.includes(cat);
+              const { badge, dot } = CATEGORY_STYLES[cat];
+              return (
+                <button
+                  key={cat}
+                  type="button"               // prevent form submit
+                  onClick={() => toggleCategory(cat)}
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
+                    transition-all border ${selected ? badge : ''}`}
+                  style={!selected ? {
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-3)',
+                  } : undefined}
+                >
+                  {/* Dot or checkmark */}
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
+                    style={{
+                      background: selected ? dot : 'var(--border-2)',
+                      border: selected ? 'none' : '1px solid var(--border-2)',
+                    }}>
+                    {selected && <Check size={9} color="#0f0f11" strokeWidth={3} />}
+                  </span>
+                  {cat}
+                </button>
+              );
+            })}
           </div>
-        )}
+
+          {/* Selected preview */}
+          {form.categories.length > 0 && (
+            <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>
+              Selected: {form.categories.join(', ')}
+            </p>
+          )}
+        </div>
 
         {/* Divider */}
         <div style={{ borderTop: '1px solid var(--border)' }} />
@@ -123,7 +161,9 @@ export default function NoteForm({ noteId, initialData }: Props) {
         <div className="flex items-center gap-3">
           <button type="submit" disabled={loading} className="btn-primary">
             <Save size={15} />
-            {loading ? (isEditing ? 'Saving…' : 'Creating…') : (isEditing ? 'Save changes' : 'Create note')}
+            {loading
+              ? (isEditing ? 'Saving…' : 'Creating…')
+              : (isEditing ? 'Save changes' : 'Create note')}
           </button>
           <a href="/dashboard" className="btn-secondary">
             <X size={15} /> Cancel
