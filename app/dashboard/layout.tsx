@@ -1,7 +1,3 @@
-// app/dashboard/layout.tsx
-// Server Component — fetches the user session, then renders the Sidebar
-// (Client Component) and the mobile top bar.
-
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { BookOpen, PenLine, LogOut } from 'lucide-react';
