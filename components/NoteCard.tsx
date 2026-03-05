@@ -62,17 +62,14 @@ export default function NoteCard({ note }: { note: Note }) {
       </div>
 
       {/* Title + description */}
-      <Link href={`/dashboard/${note.id}`} className="flex-1">
+      <Link href={`/dashboard/${note.id}`} className="group flex-1">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="font-semibold text-base leading-snug line-clamp-2 mb-1.5" style={{ color: 'var(--text)' }}>
+          <h2 className="font-semibold text-base leading-snug line-clamp-2 mb-1.5 text-text">
             {note.title}
           </h2>
-          {/* Arrow icon — appears on hover */}
-          <ArrowUpRight size={15} className="shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ color: 'var(--text-3)' }} />
         </div>
         {note.description && (
-          <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--text-3)' }}>
+          <p className="text-sm leading-relaxed line-clamp-3 transition duration-200 text-(--text-3) group-hover:text-foreground/50">
             {note.description}
           </p>
         )}
